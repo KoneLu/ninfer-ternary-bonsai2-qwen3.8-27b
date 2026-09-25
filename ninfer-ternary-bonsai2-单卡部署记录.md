@@ -87,6 +87,9 @@ listening on http://0.0.0.0:8011 | model qwen3.8-27b | auth disabled
 
 | 场景 | decode | prefill | MTP 接受 |
 |---|---:|---:|---:|
+
+## 七、下载链接
+https://www.modelscope.cn/models/Lxt1992/ninfer-ternary-bonsai2
 | 短问答（The capital of France is） | 147.4 tok/s | 221 tok/s | 14/20 = 70.0% |
 | 英文说明文 600 tok | 133.8 tok/s | 488 tok/s | 296/606 |
 | 中文说明文 363 tok | 122.3 tok/s | 461 tok/s | 163/400 |
