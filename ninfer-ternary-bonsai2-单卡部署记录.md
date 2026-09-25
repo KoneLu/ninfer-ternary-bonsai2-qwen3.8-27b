@@ -5,7 +5,7 @@
 - **一张 RTX 4090D 跑通** Ternary Bonsai 2 27B（2.125 bit/权重），运行时权重 **7.12 GiB**。
 - 服务：`ninfer-serve` 监听 `0.0.0.0:8011`，模型 id `qwen3.8-27b`。
 - **上下文**：`--kv-capacity auto` + `--kv-dtype fp8` 解出 **387,008 token 的 KV 池**；
-  `/v1/models` 报 `max_model_len = 262144`（模型原生上限），即**单卡吃满 256K**（对比：INT6 双卡才 131,072）。
+  `/v1/models` 报 `max_model_len = 262144`（模型原生上限），即**单卡吃满 256K**。
 - 实测单流：英文说明文 **133.8 tok/s**、中文说明文 **122.3 tok/s**、短问答 **147.4 tok/s**；
   prefill **460–488 tok/s**；MTP 接受率 49%–70%（短回答最高）。
 
@@ -70,9 +70,6 @@ CUDA_VISIBLE_DEVICES=6 ./build/apps/ninfer-serve artifacts/ternary-bonsai-2-27b.
 # 日志
 tail -f /data/ninfer-ternary-bonsai-ada/ninfer_serve.log
 
-# 停止 / 恢复 INT6
-pkill -x ninfer-serve
-systemctl --user start vllm-int6-27b-8011.service
 ```
 
 启动日志关键行（实测）：
