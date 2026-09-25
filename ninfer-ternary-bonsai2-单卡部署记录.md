@@ -14,8 +14,8 @@
 | 项 | 值 |
 |---|---|
 | 机器 | 192.168.1.*（Ubuntu 22.04.5，96 核，503 GB 内存） |
-| GPU | RTX 4090 D ×8，本次用 GPU6（CUDA_VISIBLE_DEVICES=6） |
-| CUDA | 13.3.73（`/home/openclaw/cuda13-home`，pip 旁装 shim；系统 nvcc 是 11.5，不能用） |
+| GPU | RTX 4090 D |
+| CUDA | 13.3.73（pip 旁装 shim；系统 nvcc 是 11.5，不能用） |
 | 编译器 | GCC/G++ 11.4.0 |
 | CMake | 3.22.1（系统自带；仓库要 3.28，见补丁） |
 | Ninja | 1.10.1 |
