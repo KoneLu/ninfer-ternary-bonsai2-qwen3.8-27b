@@ -61,7 +61,7 @@ $PY tools/pack.py build artifacts/ternary-bonsai-2-27b.ninfer --gguf artifacts/T
 # 启动（脚本：/data/ninfer-ternary-bonsai-ada/start_ninfer.sh）
 cd /data/ninfer-ternary-bonsai-ada
 export PATH=/home/cuda13-home/bin:/usr/local/bin:/usr/bin:/bin
-export LD_LIBRARY_PATH=/home/openclaw/cuda13-home/lib
+export LD_LIBRARY_PATH=/home/cuda13-home/lib
 CUDA_VISIBLE_DEVICES=6 ./build/apps/ninfer-serve artifacts/ternary-bonsai-2-27b.ninfer \
   --host 0.0.0.0 --port 8011 \
   --max-context 262144 --kv-capacity auto --kv-dtype fp8 \
