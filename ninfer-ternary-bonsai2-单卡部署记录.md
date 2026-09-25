@@ -8,13 +8,12 @@
   `/v1/models` 报 `max_model_len = 262144`（模型原生上限），即**单卡吃满 256K**（对比：INT6 双卡才 131,072）。
 - 实测单流：英文说明文 **133.8 tok/s**、中文说明文 **122.3 tok/s**、短问答 **147.4 tok/s**；
   prefill **460–488 tok/s**；MTP 接受率 49%–70%（短回答最高）。
-- 现状：`vllm-int6-27b-8011.service` 已停；**GPU6 跑 ninfer，GPU7 空闲**。
 
 ## 二、硬件与环境
 
 | 项 | 值 |
 |---|---|
-| 机器 | 172.168.1.58（Ubuntu 22.04.5，96 核，503 GB 内存） |
+| 机器 | 192.168.1.*（Ubuntu 22.04.5，96 核，503 GB 内存） |
 | GPU | RTX 4090 D ×8，本次用 GPU6（CUDA_VISIBLE_DEVICES=6） |
 | CUDA | 13.3.73（`/home/openclaw/cuda13-home`，pip 旁装 shim；系统 nvcc 是 11.5，不能用） |
 | 编译器 | GCC/G++ 11.4.0 |
@@ -92,62 +91,3 @@ listening on http://0.0.0.0:8011 | model qwen3.8-27b | auth disabled
 | 英文说明文 600 tok | 133.8 tok/s | 488 tok/s | 296/606 |
 | 中文说明文 363 tok | 122.3 tok/s | 461 tok/s | 163/400 |
 
-## 七、DSH 注册
-
-远端 58（`~/.dsh/settings.yaml`，备份 `settings.yaml.bak_ninfer_20260925-103458`）：
-
-```yaml
-    ninfer-bonsai:
-      displayName: Ternary Bonsai 2 27B (NINFER, GPU6 :8012)
-      apiKeyEnv: QWEN_API_KEY
-      api: openai-completions
-      baseURL: http://127.0.0.1:8011/v1
-      compat:
-        supportsDeveloperRole: false
-      models:
-        - id: qwen3.8-27b
-          name: Ternary Bonsai 2 27B 2.125bit (单卡 GPU6 :8011, 256K)
-          contextWindow: 262144
-          maxTokens: 32768
-          input: [ text ]
-```
-
-本机 GUI 需在 `C:\Users\98197\.dsh\settings.yaml` 的 `providers:` 下加：
-
-```yaml
-    local-ninfer:
-      displayName: 三元 Bonsai 2 27B (NINFER, 58/GPU6)
-      apiKeyEnv: LOCAL_QWEN_API_KEY
-      api: openai-completions
-      baseURL: http://172.168.1.58:8011/v1
-      compat:
-        supportsDeveloperRole: false
-      models:
-        - id: qwen3.8-27b
-          name: Ternary Bonsai 2 27B 2.125bit (单卡 GPU6 :8011, 256K)
-          contextWindow: 262144
-          maxTokens: 32768
-          input: [ text ]
-```
-
-## 八、踩过的坑（按顺序）
-
-1. **仓库不在 GitHub**：在魔搭 ModelScope `shensanshu/ninfer-ada-ternary`；GitHub 对应物是 `CraneBW/ninfer-ternary-bonsai-ada`（Linux Ada）。
-2. **HF 当前制品是容器 v3**（`NINFER\x00\x03`，JSON 在 offset 32，字段 `components/objects/bindings/...`），
-   而打包器与 v1.0.8 Ada 线引擎要 **v2**（`NINFER\x00\x02`，offset 16，`identity`+`objects`）。
-   → 用**旧 revision** `18dfc887`（v3 发布之前），只 range 读 4 MB 头就确认了 schema。
-3. **下错了 Bonsai 代次**：`Ternary-Bonsai-27B-gguf` 是第一代（底座 Qwen3.6），
-   没有 `prism.hadamard.*` 元数据 → `pack.py` KeyError。正确是 `Ternary-Bonsai-2-27B-gguf`（底座 Qwen3.8）。
-4. **58 不能直连外网**（HF/ModelScope/PyPI/GitHub Release 全不通，本地代理 17897 未启）：
-   所有大件在本机下载后用 WinSCP 推（LAN ~20–23 MB/s）；GitHub 的 git 协议 58 可通。
-5. **本机 Python 从 `E:\harness` 运行会被同名文件遮蔽 stdlib**（`bisect.py` 等）：
-   脚本放 temp 目录并用 `python -P` 运行。
-6. **58:8012 被防火墙挡**（8000/8004/8011 开放）：改用 INT6 腾出来的 **8011**。
-7. `pkill -f ninfer-serve` 会连自己的 bash wrapper 一起杀 → 用 `pkill -x ninfer-serve`。
-
-## 九、待办 / 可清理
-
-- 本机 GUI 的 provider 尚未写入（沙箱拒绝写 `~/.dsh/`，需批准或手工添加）。
-- 可清理：`E:\harness\_ninfer_cache\` 下下错的 `Ternary-Bonsai-27B-PQ2_0.gguf`(6.7G)、
-  `qwen3_8_27b.ninfer`(19G, v3 模板)；58 上同名两份。保留 `qwen3_8_27b_v2.ninfer` 与 `Ternary-Bonsai-2-27B-PQ2_0.gguf`。
-- INT6 是否恢复 / 是否把 ninfer 做成 systemd 用户服务，待定。
